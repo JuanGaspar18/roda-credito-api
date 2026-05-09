@@ -10,12 +10,12 @@ class SimulationService:
     
     # Metodo para obtener la tasa de intereses
     @staticmethod
-    def get_interest_rate(cls, vehicle_type):
+    def get_interest_rate(vehicle_type):
 
-        if vehicle_type not in cls.VEHICLE_RATES:
+        if vehicle_type not in SimulationService.VEHICLE_RATES:
             raise ValueError("El tipo de vehículo no es válido.")
 
-        return cls.VEHICLE_RATES.get(vehicle_type)  # Tasa de interés para el tipo de vehículo especificado
+        return SimulationService.VEHICLE_RATES.get(vehicle_type)  # Tasa de interés para el tipo de vehículo especificado
     
     # Metodo para calcular la financiacion del vehiculo
     @staticmethod
@@ -38,7 +38,10 @@ class SimulationService:
         total_payment = monthly_payment * installments
         total_interest = total_payment - financed_amount
 
-        return round(total_payment, 2), round(total_interest, 2)
+        return {
+            "total_interest": round(total_interest, 2),
+            "total_payment": round(total_payment, 2)
+        }
 
     @staticmethod
     def generate_amortization_schedule(

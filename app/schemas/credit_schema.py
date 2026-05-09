@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate, validates, ValidationError
+from marshmallow import Schema, fields, validate, validates_schema, ValidationError
 
 # Objeto de vehiculo para validacion de datos de entrada en la simulacion de credito
 SUPPORTED_VEHICLES = [
@@ -15,12 +15,13 @@ class SimulationSchema(Schema):
     down_payment = fields.Float(required=True, validate=validate.Range(min=0, error="El pago inicial no puede ser negativo."))
     installments = fields.Int(required=True, validate=validate.Range(min=6, max=72, error="El número de cuotas debe estar entre 6 y 72."))
 
-    @validates('down_payment')
-    def validate_down_payment(self, value, **kwargs):
+    @validates_schema
+    def validate_down_payment(self, data, **kwargs):
 
-        vehicle_value = self.context.get('vehicle_value')
+        vehicle_value = data.get('vehicle_value')
+        down_payment = data.get('down_payment')
 
-        if 'vehicle_value' is not None and value > vehicle_value:
+        if vehicle_value is not None and down_payment is not None and down_payment > vehicle_value:
             raise ValidationError('El pago inicial debe ser menor que el valor del vehículo.')
         
 # Clase para validacion de datos de la solicitud de credito

@@ -19,5 +19,8 @@ def create_app():
     CORS(app)
 
     from app.models.credit_request import CreditRequest
+    from app.routes.simulation_routes import simulation_bp
+
+    app.register_blueprint(simulation_bp, url_prefix='/api/simulations')
     
     return app
