@@ -17,9 +17,7 @@ def create_app():
     db.init_app(app)
 
     CORS(app)
-    
-    # with app.app_context():
-    #     from . import routes
-    #     db.create_all()
 
+    from app.models.credit_request import CreditRequest
+    
     return app
