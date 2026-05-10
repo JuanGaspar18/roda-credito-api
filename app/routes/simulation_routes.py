@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 
-from app.schemas.credit_schema import SimulationSchema
+from app.schemas.simulation_schema import SimulationInputSchema
 from app.services.simulation_service import SimulationService
 
 simulation_bp = Blueprint('simulation', __name__)
@@ -15,10 +15,11 @@ def calculate_credit():
 
         if not data:
             return jsonify({
-                "error": "Se requiere contenido"
+                "error": "Se requiere contenido",
+                "success": False,
             }), 400
 
-        schema = SimulationSchema()
+        schema = SimulationInputSchema()
 
         validated_data = schema.load(data)
 
@@ -31,20 +32,24 @@ def calculate_credit():
 
         return jsonify({
             "message": "Simulación de crédito calculada exitosamente",
-            "data": simulation_result
+            "data": simulation_result,
+            "success": True,
         }), 200
 
     except ValidationError as err:
         return jsonify({
-            "error": err.messages
+            "error": err.messages,
+            "success": False,
         }), 400
 
     except ValueError as err:
         return jsonify({
-            "error": str(err)
+            "error": str(err),
+            "success": False,
         }), 400
 
     except Exception as err:
         return jsonify({
-            "error": "Ocurrió un error inesperado: " + str(err)
+            "error": "Ocurrió un error inesperado: " + str(err),
+            "success": False,
         }), 500

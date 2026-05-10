@@ -4,8 +4,8 @@ from math import pow
 class SimulationService:
 
     VEHICLE_RATES = {
-            "Bicicleta electrica": 0.05,
-            "Moto electrica": 0.013
+            "Bicicleta eléctrica": 0.05,
+            "Moto eléctrica": 0.013
         }
     
     # Metodo para obtener la tasa de intereses
@@ -21,17 +21,23 @@ class SimulationService:
     @staticmethod
     def calculate_financing(vehicle_value, down_payment):
 
-        financed_amount = vehicle_value - down_payment
+        return round(vehicle_value - down_payment, 2)
 
-        return round(financed_amount, 2)
-
+    # Metodo para calcular el pago mensual utilizando la formula de amortizacion francesa
     @staticmethod
     def calculate_monthly_payment(financed_amount, interest_rate, installments):
 
-        monthly_payment = financed_amount * (interest_rate * pow(1 + interest_rate, installments)) / (pow(1 + interest_rate, installments) - 1)
+        if interest_rate == 0:  # Si la tasa de interés es cero, el pago mensual es simplemente el monto financiado dividido por el número de cuotas
+            return round(financed_amount / installments, 2)
+        
+        numerator = interest_rate * pow(1 + interest_rate, installments)
+        denominator = pow(1 + interest_rate, installments) - 1
+        
+        monthly_payment = financed_amount * (interest_rate * (numerator / denominator))
 
         return round(monthly_payment, 2)
     
+    # Metodo para calcular el total de intereses y el total a pagar durante todo el periodo del credito
     @staticmethod
     def calculate_totals(monthly_payment, installments, financed_amount):
 
@@ -43,26 +49,22 @@ class SimulationService:
             "total_payment": round(total_payment, 2)
         }
 
+    # Metodo para generar el cronograma de amortizacion, mostrando el detalle de cada cuota, el pago mensual, el interes, el pago a capital y el saldo restante despues de cada pago
     @staticmethod
-    def generate_amortization_schedule(
-        financed_amount,
-        interest_rate,
-        installments,
-        monthly_payment
-    ):
+    def generate_amortization_schedule(financed_amount, interest_rate, installments, monthly_payment):
 
         balance = financed_amount
         schedule = []
 
-        for installment_number in range(1, installments + 1):
-            interest = balance * interest_rate
-            capital_payment = monthly_payment - interest
+        for installment in range(1, installments + 1):
+            interest_payment = balance * interest_rate
+            capital_payment = monthly_payment - interest_payment
             remaining_balance = balance - capital_payment
 
             schedule.append({
-                "installment": installment_number,
+                "installment": installment,
                 "monthly_payment": round(monthly_payment, 2),
-                "interest": round(interest, 2),
+                "interest": round(interest_payment, 2),
                 "capital_payment": round(capital_payment, 2),
                 "remaining_balance": round(max(remaining_balance, 0),2)
             })
@@ -71,6 +73,7 @@ class SimulationService:
 
         return schedule
 
+    # Metodo para simular el credito final
     @classmethod
     def simulate_credit(cls, vehicle_type, vehicle_value, down_payment, installments):
         

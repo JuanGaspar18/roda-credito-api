@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import JSONB
 from app.config.db import db
 
 class CreditRequest(db.Model):
@@ -20,6 +21,7 @@ class CreditRequest(db.Model):
     down_payment = db.Column(db.Float, nullable=False)
     financed_amount = db.Column(db.Float, nullable=False)
     installments = db.Column(db.Integer, nullable=False)
+    amortization_schedule = db.Column(JSONB, nullable=True)
     interest_rate = db.Column(db.Float, nullable=False)
     monthly_payment = db.Column(db.Float, nullable=False)
     total_interest = db.Column(db.Float, nullable=False)
@@ -44,6 +46,7 @@ class CreditRequest(db.Model):
             "down_payment": round(self.down_payment, 2),
             "financed_amount": round(self.financed_amount, 2),
             "installments": self.installments,
+            "amortization_schedule": self.amortization_schedule,
             "interest_rate": round(self.interest_rate, 4),
             "monthly_payment": round(self.monthly_payment, 2),
             "total_interest": round(self.total_interest, 2),

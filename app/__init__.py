@@ -20,7 +20,9 @@ def create_app():
 
     from app.models.credit_request import CreditRequest
     from app.routes.simulation_routes import simulation_bp
+    from app.routes.request_routes import request_bp
 
     app.register_blueprint(simulation_bp, url_prefix='/api/simulations')
-    
+    app.register_blueprint(request_bp, url_prefix='/api/requests')
+
     return app
