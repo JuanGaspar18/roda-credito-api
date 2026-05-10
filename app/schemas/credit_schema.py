@@ -1,11 +1,6 @@
 from marshmallow import Schema, fields, validate, validates_schema, ValidationError
-from app.schemas.simulation_schema import SimulationInputSchema
 
-# Objeto de vehiculo para validacion de datos de entrada en la simulacion de credito
-SUPPORTED_VEHICLES = [
-    "Bicicleta eléctrica",
-    "Moto eléctrica"
-]
+from app.schemas.simulation_schema import SimulationInputSchema
         
 # Clase para validacion de datos de la solicitud de credito
 class CreditRequestSchema(Schema):

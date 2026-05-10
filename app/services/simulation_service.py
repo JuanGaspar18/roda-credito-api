@@ -1,21 +1,20 @@
 from math import pow
 
+from app.constants.vehicles import VEHICLE_RATES
+
 # Clase para realizar el proceso de simulacion de credito
 class SimulationService:
-
-    VEHICLE_RATES = {
-            "Bicicleta eléctrica": 0.05,
-            "Moto eléctrica": 0.013
-        }
     
     # Metodo para obtener la tasa de intereses
     @staticmethod
     def get_interest_rate(vehicle_type):
 
-        if vehicle_type not in SimulationService.VEHICLE_RATES:
+        rate = VEHICLE_RATES.get(vehicle_type)
+
+        if rate is None:
             raise ValueError("El tipo de vehículo no es válido.")
 
-        return SimulationService.VEHICLE_RATES.get(vehicle_type)  # Tasa de interés para el tipo de vehículo especificado
+        return rate
     
     # Metodo para calcular la financiacion del vehiculo
     @staticmethod

@@ -1,11 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from marshmallow import ValidationError
 
-from app.config.db import db
-from app.models.credit_request import CreditRequest
 from app.schemas.credit_schema import CreditRequestSchema
 from app.schemas.simulation_schema import SimulationInputSchema
+
 from app.services.simulation_service import SimulationService
+from app.services.request_service import CreditRequestService
+from app.utils.response_handler import (success_response, error_response)
 
 
 request_bp = Blueprint("request", __name__)
@@ -16,14 +17,17 @@ def create_credit_request():
     try:
 
         if not request.is_json:
-            return jsonify({
-                "success": False,
-                "message": "Content-Type must be application/json"
-            }), 400
+            return error_response(
+                message="Content-Type must be application/json",
+                status_code=400
+            )
         
         data = request.get_json()
         if not data:
-            return jsonify({"error": "No se proporcionaron datos para la solicitud de crédito.","success": False,}), 400
+            return error_response(
+                message="No se proporcionaron datos para la solicitud de crédito.",
+                status_code=400
+            )
         
         personal_data = {
             "first_name": data.get("first_name"),
@@ -40,44 +44,87 @@ def create_credit_request():
             "installments": data.get("installments")
         }
 
-        personal_schema = CreditRequestSchema()
-        simulation_schema = SimulationInputSchema()
-        print(simulation_schema.fields.keys())
+        # Validaciones
 
-        validated_personal = personal_schema.load(personal_data)
-        validated_simulation = simulation_schema.load(simulation_data)
+        valideted_personal = CreditRequestSchema().load(personal_data)
+        validated_simulation = SimulationInputSchema().load(simulation_data)
         
-        # RECALCULAR EN BACKEND
+        # Simulacion financiera
         simulation = SimulationService.simulate_credit(
             **validated_simulation
         )
 
-        # CREAR MODELO CON DATOS YA CONFIABLES
-        credit_request = CreditRequest(
-            **validated_personal,
-            **simulation
+        credit_request = CreditRequestService.create_credit_request(
+            valideted_personal,
+            simulation
         )
 
-        # 4. GUARDAR EN DB
-        db.session.add(credit_request)
-        db.session.commit()
+        return success_response(
+            data=credit_request.to_dict(),
+            message="Solicitud de crédito creada exitosamente",
+            status_code=201
+        )
 
-        return jsonify({
-            "success": True,
-            "message": "Solicitud de crédito creada exitosamente",
-            "data": credit_request.to_dict()
-        }), 201
     except ValidationError as err:
-        return jsonify({
-            "success": False,
-            "message": "Validation error",
-            "errors": err.messages
-        }), 400
+        return error_response(
+            message="Error de validación",
+            errors=err.messages,
+            status_code=400
+        )
+
+    except ValueError as err:
+        return error_response(
+            message=str(err),
+            status_code=400
+        )
+
+    except Exception as err:
+        return error_response(
+            message="Ocurrió un error inesperado",
+            errors=str(err),
+            status_code=500
+        )
+
+@request_bp.route("", methods=["GET"])
+def get_all_credit_requests():
+    
+    try:
+        requests = CreditRequestService.get_all_requests()
+
+        return success_response(
+            data=[request.to_dict() for request in requests],
+            message="Solicitudes de crédito obtenidas exitosamente",
+            status_code=200
+        )
     
     except Exception as err:
-        db.session.rollback()
-        return jsonify({
-            "error": "Ocurrió un error inesperado: ",
-            "details": str(err),
-            "success": False,
-        }),500
+        return error_response(
+            message="Ocurrió un error inesperado",
+            errors=str(err),
+            status_code=500
+        )
+
+@request_bp.route("/<int:request_id>", methods=["GET"])
+def get_credit_request_by_id(request_id):
+
+    try:
+        request_obj = CreditRequestService.get_request_by_id(request_id)
+
+        if not request_obj:
+            return error_response(
+                message="Solicitud de crédito no encontrada",
+                status_code=404
+            )
+
+        return success_response(
+            data=request_obj.to_dict(),
+            message="Solicitud de crédito obtenida exitosamente",
+            status_code=200
+        )
+    
+    except Exception as err:
+        return error_response(
+            message="Ocurrió un error inesperado",
+            errors=str(err),
+            status_code=500
+        )

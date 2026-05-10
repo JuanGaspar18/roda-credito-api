@@ -1,55 +1,69 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from marshmallow import ValidationError
 
 from app.schemas.simulation_schema import SimulationInputSchema
 from app.services.simulation_service import SimulationService
 
+from app.utils.response_handler import (success_response, error_response)
+
 simulation_bp = Blueprint('simulation', __name__)
 
-@simulation_bp.route("/calculate", methods=["POST"])
+@simulation_bp.route("/simulate", methods=["POST"])
 def calculate_credit():
 
     try:
 
+        # Validar content-type
+        if not request.is_json:
+
+            return error_response(
+                message="Content-Type must be application/json",
+                status_code=400
+            )
+
         data = request.get_json()
 
+        # Validar contenido
         if not data:
-            return jsonify({
-                "error": "Se requiere contenido",
-                "success": False,
-            }), 400
 
-        schema = SimulationInputSchema()
+            return error_response(
+                message="Se requiere contenido para realizar la simulación.",
+                status_code=400
+            )
 
-        validated_data = schema.load(data)
+        # Validar payload
+        validated_data = SimulationInputSchema().load(data)
 
+        # Ejecutar simulación
         simulation_result = SimulationService.simulate_credit(
-            vehicle_type=validated_data["vehicle_type"],
-            vehicle_value=validated_data["vehicle_value"],
-            down_payment=validated_data["down_payment"],
-            installments=validated_data["installments"]
+            **validated_data
         )
 
-        return jsonify({
-            "message": "Simulación de crédito calculada exitosamente",
-            "data": simulation_result,
-            "success": True,
-        }), 200
+        return success_response(
+            data=simulation_result,
+            message="Simulación de crédito calculada exitosamente",
+            status_code=200
+        )
 
     except ValidationError as err:
-        return jsonify({
-            "error": err.messages,
-            "success": False,
-        }), 400
+
+        return error_response(
+            message="Validation error",
+            errors=err.messages,
+            status_code=400
+        )
 
     except ValueError as err:
-        return jsonify({
-            "error": str(err),
-            "success": False,
-        }), 400
+
+        return error_response(
+            message=str(err),
+            status_code=400
+        )
 
     except Exception as err:
-        return jsonify({
-            "error": "Ocurrió un error inesperado: " + str(err),
-            "success": False,
-        }), 500
+
+        return error_response(
+            message="Ocurrió un error inesperado.",
+            errors=str(err),
+            status_code=500
+        )
