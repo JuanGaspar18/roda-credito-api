@@ -24,15 +24,23 @@ class SimulationService:
 
     # Metodo para calcular el pago mensual utilizando la formula de amortizacion francesa
     @staticmethod
-    def calculate_monthly_payment(financed_amount, interest_rate, installments):
-
-        if interest_rate == 0:  # Si la tasa de interés es cero, el pago mensual es simplemente el monto financiado dividido por el número de cuotas
-            return round(financed_amount / installments, 2)
-        
-        numerator = interest_rate * pow(1 + interest_rate, installments)
-        denominator = pow(1 + interest_rate, installments) - 1
-        
-        monthly_payment = financed_amount * (interest_rate * (numerator / denominator))
+    def calculate_monthly_payment( financed_amount, interest_rate, installments):
+        if interest_rate == 0:
+            return round(
+                financed_amount / installments,
+                2
+            )
+        numerator = (
+            interest_rate *
+            pow(1 + interest_rate, installments)
+        )
+        denominator = (
+            pow(1 + interest_rate, installments) - 1
+        )
+        monthly_payment = (
+            financed_amount *
+            (numerator / denominator)
+        )
 
         return round(monthly_payment, 2)
     
