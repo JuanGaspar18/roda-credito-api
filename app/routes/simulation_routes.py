@@ -8,7 +8,7 @@ from app.utils.response_handler import (success_response, error_response)
 
 simulation_bp = Blueprint('simulation', __name__)
 
-@simulation_bp.route("/simulate", methods=["POST"])
+@simulation_bp.route("/simulate", methods=["POST", "OPTIONS"])
 def calculate_credit():
 
     try:

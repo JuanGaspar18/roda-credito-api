@@ -16,7 +16,14 @@ def create_app():
 
     db.init_app(app)
 
-    CORS(app)
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": "*"
+            }
+        }
+    )
 
     from app.models.credit_request import CreditRequest
     from app.routes.simulation_routes import simulation_bp
